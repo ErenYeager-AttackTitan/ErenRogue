@@ -67,12 +67,18 @@
   </table>
 
   <script>
-    const nameId = window.location.pathname.split('/watch/')[1]; // Get name_id from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const channelId = urlParams.get('id'); // Get the ID from the query string
+
+    if (!channelId) {
+      alert("Channel ID is missing");
+      window.location.href = "/"; // Redirect to homepage if no ID
+    }
 
     fetch("https://erenyeager-attacktitan.github.io/ErenRogue/all.json")
       .then(res => res.json())
       .then(data => {
-        const channel = data.find(c => c.name_id === nameId);
+        const channel = data.find(c => c.id == channelId); // Find channel by ID
         if (!channel) return document.getElementById("channel-name").innerText = "Channel not found";
 
         document.getElementById("channel-name").innerText = channel.name;
