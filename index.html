@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ErenRogue - Anime IPTV</title>
+</head>
+<body>
+    <h1>Welcome to ErenRogue - Anime IPTV</h1>
+    
+    <!-- Search Form: Link to search.html with search query -->
+    <form action="search.html" method="get" id="searchForm">
+        <input type="text" id="searchInput" name="query" placeholder="Search by name or genre" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <div id="channels"></div>
+
+    <script>
+        // Fetching the list of channels from all.json
+        fetch('/all.json')
+            .then(response => response.json())
+            .then(data => {
+                let channelsDiv = document.getElementById('channels');
+                data.forEach(channel => {
+                    let channelDiv = document.createElement('div');
+                    channelDiv.innerHTML = `
+                        <h2>${channel.channelName}</h2>
+                        <img src="${channel.poster}" alt="${channel.channelName} Poster" width="200">
+                        <a href="watch.html?id=${channel.id}">Watch Live</a>
+                    `;
+                    channelsDiv.appendChild(channelDiv);
+                });
+            });
+    </script>
+</body>
+</html>
