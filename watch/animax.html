@@ -33,6 +33,7 @@
       width: 100%;
       height: 100%;
       border: none;
+      border-radius: 8px;
     }
     .schedule-container {
       margin-top: 30px;
@@ -55,6 +56,16 @@
     p {
       margin: 5px;
     }
+    .fullscreen-btn {
+      background-color: #FF6347;
+      color: white;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -62,8 +73,11 @@
 
   <!-- Iframe Container (16:9 Aspect Ratio) -->
   <div class="iframe-container">
-    <iframe src="https://mikasa-ackerman-cdn.pages.dev/channels/watch/anime/animax" id="channel-iframe"></iframe>
+    <iframe id="channel-iframe" src="https://mikasa-ackerman-cdn.pages.dev/channels/watch/anime/animax" allowfullscreen></iframe>
   </div>
+
+  <!-- Fullscreen Button -->
+  <button class="fullscreen-btn" onclick="toggleFullscreen()">Toggle Fullscreen</button>
 
   <!-- Schedule Section -->
   <div class="schedule-container" id="schedule-container">
@@ -94,6 +108,7 @@
           const userTime = new Date();
 
           // Display the schedule
+          let isCurrentShowFound = false;
           programmes.forEach(programme => {
             const title = programme.querySelector("title") ? programme.querySelector("title").textContent : "No Title";
             const start = programme.getAttribute("start");
@@ -110,6 +125,7 @@
             // Check if this show is the currently streaming show in the iframe
             if (startDate <= userTime && endDate >= userTime && streamIframeSrc.includes("animax")) {
               scheduleBox.classList.add('highlight'); // Highlight currently streaming show
+              isCurrentShowFound = true; // Set flag when the currently streaming show is found
             }
 
             scheduleBox.innerHTML = `
@@ -120,12 +136,31 @@
             `;
             document.getElementById('schedule-container').appendChild(scheduleBox);
           });
+
+          if (!isCurrentShowFound) {
+            // If no currently streaming show found, display a message
+            document.getElementById("schedule-container").innerHTML += "<p>No show is currently streaming on Animax.</p>";
+          }
         }
       })
       .catch(error => {
         console.error('Error fetching schedule:', error);
         document.getElementById("schedule-container").innerHTML = "<p>Error loading schedule.</p>";
       });
+
+    // Fullscreen toggle function
+    function toggleFullscreen() {
+      const iframe = document.getElementById('channel-iframe');
+      if (iframe.requestFullscreen) {
+        iframe.requestFullscreen();
+      } else if (iframe.mozRequestFullScreen) { // Firefox
+        iframe.mozRequestFullScreen();
+      } else if (iframe.webkitRequestFullscreen) { // Chrome, Safari and Opera
+        iframe.webkitRequestFullscreen();
+      } else if (iframe.msRequestFullscreen) { // IE/Edge
+        iframe.msRequestFullscreen();
+      }
+    }
 
     // Add Poster Image as background
     const channelPoster = 'https://mikasa-ackerman-cdn.pages.dev/img/animax.jpeg'; // Animax poster URL
