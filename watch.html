@@ -2,159 +2,112 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Watch Channel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Watch Anime</title>
   <style>
-    body { background: #111; color: #fff; font-family: Arial, sans-serif; padding: 20px; text-align: center; }
-    iframe { width: 100%; height: 70vh; border: none; margin-bottom: 20px; }
-    .poster { max-width: 200px; margin: 0 auto 20px; display: block; border-radius: 12px; }
-    .desc { font-size: 16px; color: #aaa; margin-bottom: 20px; }
-
-    /* Schedule Box */
-    .schedule-box {
-      max-height: 400px;
-      overflow-y: scroll;
-      padding: 10px;
-      margin-top: 20px;
-      background-color: #222;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    body {
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
     }
-
-    /* Schedule Table */
-    table {
+    iframe {
       width: 100%;
-      border-collapse: collapse;
+      height: 70vh;
+      border: none;
+      margin-bottom: 20px;
     }
-
-    th, td {
+    .poster {
+      max-width: 200px;
+      margin: 0 auto 20px;
+      display: block;
+      border-radius: 12px;
+    }
+    .desc {
+      font-size: 16px;
+      color: #aaa;
+      margin-bottom: 20px;
+    }
+    .schedule {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+    }
+    .schedule th, .schedule td {
+      border: 1px solid #444;
       padding: 10px;
       text-align: left;
-      border-bottom: 1px solid #444;
     }
-
-    th { background-color: #333; color: #fff; }
-    td { background-color: #222; color: #aaa; }
-
-    /* Highlight current show */
-    .now {
-      background-color: #4caf50 !important;
-      color: white !important;
+    .schedule th {
+      background-color: #333;
     }
-
-    /* General styling for box */
-    .epg-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px;
-      margin-bottom: 10px;
-      background: #333;
-      border-radius: 8px;
-      color: #fff;
+    .current-schedule {
+      background-color: #ff6347;
+      color: white;
     }
-
-    .epg-item h4 {
-      margin: 0;
-      font-size: 18px;
-    }
-
-    .epg-item p {
-      margin: 0;
-      color: #bbb;
-      font-size: 14px;
-    }
-
-    .epg-item.now {
-      background: #4caf50;
-    }
-
-    /* Style for description */
-    .desc { max-width: 600px; margin: 0 auto; text-align: left; }
   </style>
 </head>
 <body>
-  <h1 id="title">Loading...</h1>
+  <h1 id="channel-name">Loading...</h1>
   <img id="poster" class="poster" src="" alt="Poster" />
   <p id="desc" class="desc"></p>
   <iframe id="player" allowfullscreen></iframe>
 
-  <div id="epg" class="schedule-box">
-    <h2>Schedule</h2>
-    <table id="epg-list"></table>
-  </div>
+  <h2>Schedule</h2>
+  <table class="schedule" id="schedule-table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody id="schedule-body"></tbody>
+  </table>
 
   <script>
-    const nameId = window.location.pathname.split('/watch/')[1];
+    const nameId = window.location.pathname.split('/watch/')[1]; // Get name_id from URL
 
     fetch("https://erenyeager-attacktitan.github.io/ErenRogue/all.json")
       .then(res => res.json())
       .then(data => {
         const channel = data.find(c => c.name_id === nameId);
-        if (!channel) return document.getElementById("title").innerText = "Channel not found";
+        if (!channel) return document.getElementById("channel-name").innerText = "Channel not found";
 
-        document.getElementById("title").innerText = channel.name;
+        document.getElementById("channel-name").innerText = channel.name;
         document.getElementById("player").src = channel.iframe;
         document.getElementById("poster").src = channel.poster;
         document.getElementById("desc").innerText = channel.description || "No description available";
 
-        if (channel.schedule) {
-          fetch(channel.api)
-            .then(res => res.text())
-            .then(str => (new window.DOMParser()).parseFromString(str, "text/xml"))
-            .then(xml => {
-              const items = xml.querySelectorAll(`programme[channel="${channel.name_id}"]`);
-              const epgList = document.getElementById("epg-list");
-              if (items.length === 0) {
-                epgList.innerHTML = `<tr><td colspan="3">No schedule available.</td></tr>`;
-                return;
-              }
-              items.forEach(item => {
-                const title = item.querySelector("title")?.textContent || "No Title";
-                const start = item.getAttribute("start");
-                const stop = item.getAttribute("stop");
-                const desc = item.querySelector("desc")?.textContent || "No Description";
+        // Build schedule table
+        const scheduleBody = document.getElementById("schedule-body");
+        channel.schedule.forEach((program, index) => {
+          const row = document.createElement("tr");
+          const currentTime = new Date().getTime();
 
-                const isNow = isCurrentProgram(start, stop);
+          // Convert times to human-readable format
+          const startTime = new Date(program.start * 1000);
+          const endTime = new Date(program.end * 1000);
 
-                epgList.innerHTML += `
-                  <tr class="${isNow ? 'now' : ''}">
-                    <td>${title}</td>
-                    <td>${formatTime(start)} to ${formatTime(stop)}</td>
-                    <td>${desc}</td>
-                  </tr>
-                `;
-              });
-            });
-        }
+          const startTimeStr = startTime.toLocaleString();
+          const endTimeStr = endTime.toLocaleString();
+
+          row.innerHTML = `
+            <td>${program.title}</td>
+            <td>${startTimeStr}</td>
+            <td>${endTimeStr}</td>
+            <td>${program.desc || "No description available"}</td>
+          `;
+
+          // Highlight current program if it's being aired now
+          if (currentTime >= startTime.getTime() && currentTime <= endTime.getTime()) {
+            row.classList.add("current-schedule");
+          }
+
+          scheduleBody.appendChild(row);
+        });
       });
-
-    function formatTime(raw) {
-      const yyyy = raw.slice(0, 4);
-      const MM = raw.slice(4, 6);
-      const dd = raw.slice(6, 8);
-      const hh = raw.slice(8, 10);
-      const mm = raw.slice(10, 12);
-      const ss = raw.slice(12, 14);
-      const utcDate = new Date(Date.UTC(yyyy, MM - 1, dd, hh, mm, ss));
-      return utcDate.toLocaleString();
-    }
-
-    function isCurrentProgram(start, stop) {
-      const currentTime = new Date();
-      const startTime = parseDate(start);
-      const stopTime = parseDate(stop);
-      return currentTime >= startTime && currentTime <= stopTime;
-    }
-
-    function parseDate(raw) {
-      const yyyy = raw.slice(0, 4);
-      const MM = raw.slice(4, 6);
-      const dd = raw.slice(6, 8);
-      const hh = raw.slice(8, 10);
-      const mm = raw.slice(10, 12);
-      const ss = raw.slice(12, 14);
-      return new Date(Date.UTC(yyyy, MM - 1, dd, hh, mm, ss));
-    }
   </script>
 </body>
-  </html>
-  
+</html>
