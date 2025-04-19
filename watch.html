@@ -75,7 +75,7 @@
       window.location.href = "/"; // Redirect to homepage if no ID
     }
 
-    fetch("https://erenyeager-attacktitan.github.io/ErenRogue/all.json")
+    fetch("https://erenrogue.pages.dev/all.json")
       .then(res => res.json())
       .then(data => {
         const channel = data.find(c => c.id == channelId); // Find channel by ID
