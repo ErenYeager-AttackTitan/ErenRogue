@@ -1,10 +1,17 @@
-[
-  {
-    "id": 1,
-    "channelName": "Animax",
-    "genre": "Anime, Action, Drama",
-    "link": "/iptv/animax.json",
-    "iframeUrl": "https://mikasa-ackerman-cdn.pages.dev/channels/watch/anime/animax",
-    "poster": "https://mikasa-ackerman-cdn.pages.dev/img/animax.jpeg"
-  }
-]
+{
+  "channels": [
+    {
+      "id": 1,
+      "anime_id": "animax",
+      "name": "Animax",
+      "language": "japanese",
+      "icon": true,
+      "logo": "https://mikasa-ackerman-cdn.pages.dev/channels/logo/animax-logo_0.png",
+      "poster": "https://mikasa-ackerman-cdn.pages.dev/img/animax.jpeg",
+      "url": "https://mikasa-ackerman-cdn.pages.dev/channels/watch/anime/animax",
+      "type": "iptv",
+      "schedule": true,
+      "api": "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/in.xml"
+    }
+  ]
+}
