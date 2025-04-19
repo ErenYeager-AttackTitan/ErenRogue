@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Watch Animax - Anime Streaming & IPTV</title>
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #FF6347;
+    }
+    .iframe-container {
+      margin-top: 20px;
+      position: relative;
+      height: 400px;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .schedule-container {
+      margin-top: 30px;
+      overflow-y: scroll;
+      height: 200px;
+      padding: 10px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      background-color: #222;
+    }
+    .schedule-box {
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #333;
+      border-radius: 8px;
+    }
+    .schedule-box.highlight {
+      background-color: #FF6347;
+    }
+    p {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Watch Animax - Anime Streaming & IPTV</h1>
+
+  <!-- Iframe Container to show the stream -->
+  <div class="iframe-container">
+    <iframe src="https://mikasa-ackerman-cdn.pages.dev/channels/watch/anime/animax" id="channel-iframe"></iframe>
+  </div>
+
+  <!-- Schedule Section -->
+  <div class="schedule-container" id="schedule-container">
+    <!-- Schedule will be populated dynamically here -->
+  </div>
+
+  <script>
+    // Fetch the channel data (for Animax in this case) from all.json
+    fetch('https://erenyeager-attacktitan.github.io/ErenRogue/all.json')
+      .then(res => res.json())
+      .then(data => {
+        // Find Animax channel from all.json
+        const animax = data.find(channel => channel.name.toLowerCase() === 'animax');
+        if (!animax) {
+          console.error('Animax channel not found!');
+          return;
+        }
+
+        // Add Poster Image
+        const channelPoster = animax.poster || 'default-poster.jpg';
+        document.body.style.backgroundImage = `url(${channelPoster})`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+
+        // Display the Schedule
+        const scheduleContainer = document.getElementById('schedule-container');
+        animax.schedule.forEach(schedule => {
+          const scheduleBox = document.createElement('div');
+          scheduleBox.classList.add('schedule-box');
+          if (new Date(schedule.start * 1000) <= new Date() && new Date(schedule.end * 1000) >= new Date()) {
+            scheduleBox.classList.add('highlight'); // Highlight currently streaming show
+          }
+
+          scheduleBox.innerHTML = `
+            <p><strong>Title:</strong> ${schedule.title}</p>
+            <p><strong>Start:</strong> ${new Date(schedule.start * 1000).toLocaleString()}</p>
+            <p><strong>End:</strong> ${new Date(schedule.end * 1000).toLocaleString()}</p>
+            <p><strong>Description:</strong> ${schedule.desc || 'No Description Available'}</p>
+          `;
+          scheduleContainer.appendChild(scheduleBox);
+        });
+      })
+      .catch(err => console.error('Error fetching Animax data:', err));
+  </script>
+</body>
+  </html>
+  
