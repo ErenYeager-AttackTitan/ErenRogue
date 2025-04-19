@@ -1,2 +1,60 @@
-<h1>coming soon</h1>
-<link src="https://erenrogue.pages.dev/"></link>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime Streaming & IPTV</title>
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #FF6347;
+    }
+    .channel-list {
+      margin-top: 30px;
+    }
+    .channel-item {
+      padding: 15px;
+      background-color: #222;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      display: inline-block;
+      width: 200px;
+    }
+    .channel-item:hover {
+      background-color: #444;
+    }
+    .channel-item p {
+      margin: 10px 0;
+      color: #fff;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Anime Streaming & IPTV</h1>
+  <div class="channel-list">
+    <div class="channel-item" onclick="goToChannel('animax')">
+      <p>Animax</p>
+    </div>
+    <div class="channel-item" onclick="goToChannel('starplus')">
+      <p>Star Plus</p>
+    </div>
+    <!-- Add more channels here as needed -->
+  </div>
+
+  <script>
+    // Function to redirect to the appropriate watch page
+    function goToChannel(name_id) {
+      // Redirect to /watch/{name_id}
+      window.location.href = `/watch/${name_id}`;
+    }
+  </script>
+</body>
+</html>
