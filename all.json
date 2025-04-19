@@ -2,7 +2,7 @@
   "channels": [
     {
       "id": 1,
-      "anime_id": "animax",
+      "name_id": "animax",
       "name": "Animax",
       "language": "japanese",
       "icon": true,
