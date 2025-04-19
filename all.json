@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1,
+    "channelName": "Animax",
+    "genre": "Anime, Action, Drama",
+    "link": "/iptv/animax.json",
+    "iframeUrl": "https://mikasa-ackerman-cdn.pages.dev/channels/watch/anime/animax",
+    "poster": "https://mikasa-ackerman-cdn.pages.dev/img/animax.jpeg"
+  }
+]
