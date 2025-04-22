@@ -1,89 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Video & Subtitle Uploader</title>
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- jQuery -->
+  <meta charset="UTF-8">
+  <title>Hydrax Uploader</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 p-6">
+  <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md space-y-4">
+    <h2 class="text-2xl font-bold text-center text-gray-800">Hydrax Video & Subtitle Uploader</h2>
 
-  <div class="container d-flex justify-content-center align-items-center min-vh-100">
-    <div class="card shadow-lg p-4" style="max-width: 600px; width: 100%; background: #fff;">
-      <h2 class="text-center mb-4 text-3xl font-semibold text-gray-800">Upload Video & Subtitle</h2>
-
-      <!-- Video File Selection -->
-      <div class="mb-3">
-        <label for="videoFile" class="form-label text-lg font-medium">Select Video File</label>
-        <input class="form-control" type="file" id="videoFile" accept=".mp4, .avi, .mkv, .webm">
-      </div>
-
-      <!-- Subtitle File Selection -->
-      <div class="mb-3">
-        <label for="subtitleFile" class="form-label text-lg font-medium">Optional Subtitle File</label>
-        <input class="form-control" type="file" id="subtitleFile" accept=".srt, .vtt">
-      </div>
-
-      <!-- Upload Button -->
-      <div class="mb-4">
-        <button id="uploadBtn" class="btn btn-primary w-full text-white py-2">Upload Video</button>
-      </div>
-
-      <!-- Message Area -->
-      <div id="message" class="text-center text-sm font-medium"></div>
+    <!-- Video Upload -->
+    <div>
+      <label class="block font-medium text-gray-700 mb-2">Select Video File</label>
+      <input type="file" id="videoFile" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-700">
     </div>
+
+    <!-- Subtitle Info -->
+    <div>
+      <label class="block text-gray-700 mb-1">Subtitle URL</label>
+      <input type="text" id="subtitleUrl" class="w-full px-3 py-2 border rounded-md" placeholder="https://example.com/sub.srt">
+    </div>
+    <div>
+      <label class="block text-gray-700 mb-1">Subtitle Label</label>
+      <input type="text" id="subtitleLabel" class="w-full px-3 py-2 border rounded-md" placeholder="English">
+    </div>
+
+    <!-- Upload Button -->
+    <button id="uploadBtn" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold">
+      Upload Video & Subtitle
+    </button>
+
+    <div id="response" class="text-sm text-gray-800 mt-4"></div>
   </div>
 
   <script>
-    $(document).ready(function() {
-      $('#uploadBtn').click(function() {
-        const videoFileInput = $('#videoFile')[0];
-        const subtitleFileInput = $('#subtitleFile')[0];
+    $("#uploadBtn").on("click", async function () {
+      const fileInput = document.getElementById("videoFile");
+      const file = fileInput.files[0];
+      const subtitleUrl = $("#subtitleUrl").val();
+      const subtitleLabel = $("#subtitleLabel").val();
 
-        if (videoFileInput.files.length === 0) {
-          $('#message').removeClass('text-green-500').addClass('text-red-500').text('Please select a video file.');
-          return;
-        }
+      if (!file) return alert("Please select a video file.");
 
-        const videoFile = videoFileInput.files[0];
-        const subtitleFile = subtitleFileInput.files.length > 0 ? subtitleFileInput.files[0] : null;
+      // Step 1: Upload video
+      const formData = new FormData();
+      formData.append("file", file);
 
-        uploadFiles(videoFile, subtitleFile);
-      });
+      $("#response").text("Uploading video...");
 
-      function uploadFiles(videoFile, subtitleFile) {
-        const formData = new FormData();
-        formData.append('file', videoFile, videoFile.name);
+      try {
+        const videoUploadRes = await fetch("http://up.hydrax.net/5ad53759ada34ea357b1ef70883ceb84", {
+          method: "POST",
+          body: formData
+        });
 
-        if (subtitleFile) {
-          formData.append('subtitle', subtitleFile, subtitleFile.name);
-        }
+        const uploadData = await videoUploadRes.json();
 
+        if (!uploadData.status) throw new Error("Video upload failed");
+
+        const slug = uploadData.slug;
+        $("#response").text("Video uploaded. Uploading subtitle...");
+
+        // Step 2: Upload subtitle
         $.ajax({
-          url: 'http://up.hydrax.net/5ad53759ada34ea357b1ef70883ceb84',
-          type: 'POST',
-          data: formData,
-          processData: false,
-          contentType: false,
-          success: function(response) {
-            if (response && response.slug) {
-              $('#message').removeClass('text-red-500').addClass('text-green-500');
-              $('#message').text('Upload successful! Slug: ' + response.slug);
-            } else {
-              $('#message').removeClass('text-green-500').addClass('text-red-500');
-              $('#message').text('Upload failed. No slug returned.');
-            }
+          url: `https://api.hydrax.net/5ad53759ada34ea357b1ef70883ceb84/subtitle/${slug}`,
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({
+            url: subtitleUrl,
+            label: subtitleLabel
+          }),
+          success: function (data) {
+            $("#response").html(`<div class="text-green-600 font-medium">Upload successful! Slug: <code>${slug}</code></div>`);
           },
-          error: function(jqXHR, textStatus, errorThrown) {
-            $('#message').removeClass('text-green-500').addClass('text-red-500');
-            $('#message').text('Upload failed: ' + errorThrown);
+          error: function (err) {
+            $("#response").html(`<div class="text-red-600">Subtitle upload failed.</div>`);
           }
         });
+
+      } catch (error) {
+        $("#response").html(`<div class="text-red-600">Video upload failed: ${error.message}</div>`);
       }
     });
   </script>
