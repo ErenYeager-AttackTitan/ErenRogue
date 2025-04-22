@@ -18,17 +18,17 @@
 
     <!-- Subtitle Info -->
     <div>
-      <label class="block text-gray-700 mb-1">Subtitle URL</label>
+      <label class="block text-gray-700 mb-1">Subtitle URL (optional)</label>
       <input type="text" id="subtitleUrl" class="w-full px-3 py-2 border rounded-md" placeholder="https://example.com/subtitle.srt">
     </div>
     <div>
-      <label class="block text-gray-700 mb-1">Subtitle Label</label>
+      <label class="block text-gray-700 mb-1">Subtitle Label (optional)</label>
       <input type="text" id="subtitleLabel" class="w-full px-3 py-2 border rounded-md" placeholder="English">
     </div>
 
     <!-- Upload Button -->
     <button id="uploadBtn" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold">
-      Upload Video & Subtitle
+      Upload Video
     </button>
 
     <!-- Response Box -->
@@ -38,11 +38,10 @@
   <script>
     $("#uploadBtn").on("click", function () {
       const file = $("#videoFile")[0].files[0];
-      const subtitleUrl = $("#subtitleUrl").val();
-      const subtitleLabel = $("#subtitleLabel").val();
+      const subtitleUrl = $("#subtitleUrl").val().trim();
+      const subtitleLabel = $("#subtitleLabel").val().trim();
 
       if (!file) return alert("Please select a video file.");
-      if (!subtitleUrl || !subtitleLabel) return alert("Please fill subtitle URL and label.");
 
       $("#response").html("<div class='text-blue-600'>Uploading video...</div>");
 
@@ -60,24 +59,29 @@
           if (videoRes.status && videoRes.slug) {
             const slug = videoRes.slug;
             $("#response").append(`<div class='text-green-600'>Video uploaded! Slug: <code>${slug}</code></div>`);
-            $("#response").append("<div class='text-blue-600'>Uploading subtitle...</div>");
 
-            // Step 2: Upload subtitle
-            $.ajax({
-              url: `https://api.hydrax.net/5ad53759ada34ea357b1ef70883ceb84/subtitle/${slug}`,
-              method: "POST",
-              contentType: "application/json",
-              data: JSON.stringify({
-                url: subtitleUrl,
-                label: subtitleLabel
-              }),
-              success: function () {
-                $("#response").append("<div class='text-green-600'>Subtitle uploaded successfully!</div>");
-              },
-              error: function () {
-                $("#response").append("<div class='text-red-600'>Subtitle upload failed.</div>");
-              }
-            });
+            // Check if subtitles provided
+            if (subtitleUrl && subtitleLabel) {
+              $("#response").append("<div class='text-blue-600'>Uploading subtitle...</div>");
+              // Step 2: Upload subtitle
+              $.ajax({
+                url: `https://api.hydrax.net/5ad53759ada34ea357b1ef70883ceb84/subtitle/${slug}`,
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                  url: subtitleUrl,
+                  label: subtitleLabel
+                }),
+                success: function () {
+                  $("#response").append("<div class='text-green-600'>Subtitle uploaded successfully!</div>");
+                },
+                error: function () {
+                  $("#response").append("<div class='text-red-600'>Subtitle upload failed.</div>");
+                }
+              });
+            } else {
+              $("#response").append("<div class='text-yellow-600'>No subtitle provided — skipped subtitle upload.</div>");
+            }
           } else {
             $("#response").html("<div class='text-red-600'>Video upload failed. No slug returned.</div>");
           }
