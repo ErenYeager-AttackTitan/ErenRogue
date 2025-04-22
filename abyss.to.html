@@ -19,7 +19,7 @@
     <!-- Subtitle Info -->
     <div>
       <label class="block text-gray-700 mb-1">Subtitle URL</label>
-      <input type="text" id="subtitleUrl" class="w-full px-3 py-2 border rounded-md" placeholder="https://example.com/sub.srt">
+      <input type="text" id="subtitleUrl" class="w-full px-3 py-2 border rounded-md" placeholder="https://example.com/subtitle.srt">
     </div>
     <div>
       <label class="block text-gray-700 mb-1">Subtitle Label</label>
@@ -35,53 +35,58 @@
   </div>
 
   <script>
-    $("#uploadBtn").on("click", async function () {
-      const fileInput = document.getElementById("videoFile");
+    $("#uploadBtn").on("click", function () {
+      const fileInput = $("#videoFile")[0];
       const file = fileInput.files[0];
       const subtitleUrl = $("#subtitleUrl").val();
       const subtitleLabel = $("#subtitleLabel").val();
 
-      if (!file) return alert("Please select a video file.");
+      if (!file) {
+        alert("Please select a video file.");
+        return;
+      }
 
-      // Step 1: Upload video
+      $("#response").html("<span class='text-blue-600'>Uploading video...</span>");
+
       const formData = new FormData();
       formData.append("file", file);
 
-      $("#response").text("Uploading video...");
+      // AJAX video upload
+      $.ajax({
+        url: "http://up.hydrax.net/5ad53759ada34ea357b1ef70883ceb84",
+        method: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (videoData) {
+          if (videoData.status) {
+            const slug = videoData.slug;
+            $("#response").html("<span class='text-blue-600'>Video uploaded. Uploading subtitle...</span>");
 
-      try {
-        const videoUploadRes = await fetch("http://up.hydrax.net/5ad53759ada34ea357b1ef70883ceb84", {
-          method: "POST",
-          body: formData
-        });
-
-        const uploadData = await videoUploadRes.json();
-
-        if (!uploadData.status) throw new Error("Video upload failed");
-
-        const slug = uploadData.slug;
-        $("#response").text("Video uploaded. Uploading subtitle...");
-
-        // Step 2: Upload subtitle
-        $.ajax({
-          url: `https://api.hydrax.net/5ad53759ada34ea357b1ef70883ceb84/subtitle/${slug}`,
-          method: "POST",
-          contentType: "application/json",
-          data: JSON.stringify({
-            url: subtitleUrl,
-            label: subtitleLabel
-          }),
-          success: function (data) {
-            $("#response").html(`<div class="text-green-600 font-medium">Upload successful! Slug: <code>${slug}</code></div>`);
-          },
-          error: function (err) {
-            $("#response").html(`<div class="text-red-600">Subtitle upload failed.</div>`);
+            // Subtitle upload
+            $.ajax({
+              url: `https://api.hydrax.net/5ad53759ada34ea357b1ef70883ceb84/subtitle/${slug}`,
+              method: "POST",
+              contentType: "application/json",
+              data: JSON.stringify({
+                url: subtitleUrl,
+                label: subtitleLabel
+              }),
+              success: function () {
+                $("#response").html(`<div class="text-green-600 font-medium">Upload successful!<br>Slug: <code>${slug}</code></div>`);
+              },
+              error: function () {
+                $("#response").html(`<div class="text-red-600">Subtitle upload failed.</div>`);
+              }
+            });
+          } else {
+            $("#response").html(`<div class="text-red-600">Video upload failed: Invalid status.</div>`);
           }
-        });
-
-      } catch (error) {
-        $("#response").html(`<div class="text-red-600">Video upload failed: ${error.message}</div>`);
-      }
+        },
+        error: function () {
+          $("#response").html(`<div class="text-red-600">Video upload request failed.</div>`);
+        }
+      });
     });
   </script>
 </body>
