@@ -2,18 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Hydrax Uploader</title>
+  <title>Hydrax Upload</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-6">
-  <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md space-y-4">
-    <h2 class="text-2xl font-bold text-center text-gray-800">Hydrax Video & Subtitle Uploader</h2>
+<body class="bg-gray-100 min-h-screen p-6 flex items-center justify-center">
+  <div class="max-w-xl w-full bg-white p-6 rounded-xl shadow-lg space-y-4">
+    <h2 class="text-2xl font-bold text-center text-gray-800">Hydrax Uploader</h2>
 
     <!-- Video Upload -->
     <div>
       <label class="block font-medium text-gray-700 mb-2">Select Video File</label>
-      <input type="file" id="videoFile" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-700">
+      <input type="file" id="videoFile" accept="video/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700">
     </div>
 
     <!-- Subtitle Info -->
@@ -31,39 +31,38 @@
       Upload Video & Subtitle
     </button>
 
-    <div id="response" class="text-sm text-gray-800 mt-4"></div>
+    <!-- Response Box -->
+    <div id="response" class="text-sm text-gray-800 mt-4 space-y-2"></div>
   </div>
 
   <script>
     $("#uploadBtn").on("click", function () {
-      const fileInput = $("#videoFile")[0];
-      const file = fileInput.files[0];
+      const file = $("#videoFile")[0].files[0];
       const subtitleUrl = $("#subtitleUrl").val();
       const subtitleLabel = $("#subtitleLabel").val();
 
-      if (!file) {
-        alert("Please select a video file.");
-        return;
-      }
+      if (!file) return alert("Please select a video file.");
+      if (!subtitleUrl || !subtitleLabel) return alert("Please fill subtitle URL and label.");
 
-      $("#response").html("<span class='text-blue-600'>Uploading video...</span>");
+      $("#response").html("<div class='text-blue-600'>Uploading video...</div>");
 
       const formData = new FormData();
       formData.append("file", file);
 
-      // AJAX video upload
+      // Step 1: Upload video
       $.ajax({
         url: "http://up.hydrax.net/5ad53759ada34ea357b1ef70883ceb84",
         method: "POST",
         data: formData,
         processData: false,
         contentType: false,
-        success: function (videoData) {
-          if (videoData.status) {
-            const slug = videoData.slug;
-            $("#response").html("<span class='text-blue-600'>Video uploaded. Uploading subtitle...</span>");
+        success: function (videoRes) {
+          if (videoRes.status && videoRes.slug) {
+            const slug = videoRes.slug;
+            $("#response").append(`<div class='text-green-600'>Video uploaded! Slug: <code>${slug}</code></div>`);
+            $("#response").append("<div class='text-blue-600'>Uploading subtitle...</div>");
 
-            // Subtitle upload
+            // Step 2: Upload subtitle
             $.ajax({
               url: `https://api.hydrax.net/5ad53759ada34ea357b1ef70883ceb84/subtitle/${slug}`,
               method: "POST",
@@ -73,18 +72,18 @@
                 label: subtitleLabel
               }),
               success: function () {
-                $("#response").html(`<div class="text-green-600 font-medium">Upload successful!<br>Slug: <code>${slug}</code></div>`);
+                $("#response").append("<div class='text-green-600'>Subtitle uploaded successfully!</div>");
               },
               error: function () {
-                $("#response").html(`<div class="text-red-600">Subtitle upload failed.</div>`);
+                $("#response").append("<div class='text-red-600'>Subtitle upload failed.</div>");
               }
             });
           } else {
-            $("#response").html(`<div class="text-red-600">Video upload failed: Invalid status.</div>`);
+            $("#response").html("<div class='text-red-600'>Video upload failed. No slug returned.</div>");
           }
         },
         error: function () {
-          $("#response").html(`<div class="text-red-600">Video upload request failed.</div>`);
+          $("#response").html("<div class='text-red-600'>Video upload request failed. Check CORS or server status.</div>");
         }
       });
     });
