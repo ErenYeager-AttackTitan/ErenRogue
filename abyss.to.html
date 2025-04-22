@@ -33,11 +33,6 @@
       <button id="uploadBtn" class="btn btn-primary w-full">Upload Video</button>
     </div>
 
-    <!-- Progress Bar -->
-    <div class="progress h-6 mb-3">
-      <div id="uploadProgress" class="progress-bar h-6" role="progressbar" style="width: 0%;">0%</div>
-    </div>
-
     <!-- Message -->
     <div id="message" class="text-center text-sm"></div>
   </div>
@@ -48,6 +43,7 @@
         const videoFileInput = $('#videoFile')[0];
         const subtitleFileInput = $('#subtitleFile')[0];
 
+        // Validate that a video file is selected
         if (videoFileInput.files.length === 0) {
           $('#message').text('Please select a video file to upload.').addClass('text-red-500');
           return;
@@ -61,9 +57,11 @@
 
       function uploadVideo(videoFile, subtitleFile) {
         const formData = new FormData();
-        formData.append('file', videoFile, videoFile.name);
+        formData.append('file', videoFile, videoFile.name); // Append video file
+
         console.log('Video file appended:', videoFile.name);
 
+        // Append subtitle file if provided
         if (subtitleFile) {
           formData.append('subtitle', subtitleFile, subtitleFile.name);
           console.log('Subtitle file appended:', subtitleFile.name);
@@ -73,20 +71,11 @@
           url: 'http://up.hydrax.net/5ad53759ada34ea357b1ef70883ceb84',
           type: 'POST',
           data: formData,
-          processData: false, // Prevents jQuery from processing the data
-          contentType: false, // Prevents jQuery from setting content-type
-          xhr: function() {
-            const xhr = new window.XMLHttpRequest();
-            xhr.upload.addEventListener('progress', function(evt) {
-              if (evt.lengthComputable) {
-                const percentComplete = Math.round((evt.loaded / evt.total) * 100);
-                $('#uploadProgress').css('width', percentComplete + '%').text(percentComplete + '%');
-              }
-            }, false);
-            return xhr;
-          },
+          processData: false,  // Prevents jQuery from processing the data
+          contentType: false,  // Prevents jQuery from setting content-type
           success: function(response) {
             console.log('Response:', response);
+
             if (response && response.slug) {
               $('#message').removeClass('text-red-500').addClass('text-green-500');
               $('#message').text('Upload successful! Slug: ' + response.slug);
