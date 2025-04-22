@@ -19,7 +19,7 @@
     <!-- Video File Selection -->
     <div class="mb-3">
       <label for="videoFile" class="form-label">Choose a video file</label>
-      <input class="form-control" type="file" id="videoFile" accept="video/*">
+      <input class="form-control" type="file" id="videoFile" accept=".mp4, .avi, .mkv, .webm">
     </div>
 
     <!-- Subtitle File Selection -->
@@ -62,17 +62,19 @@
       function uploadVideo(videoFile, subtitleFile) {
         const formData = new FormData();
         formData.append('file', videoFile, videoFile.name);
+        console.log('Video file appended:', videoFile.name);
 
         if (subtitleFile) {
           formData.append('subtitle', subtitleFile, subtitleFile.name);
+          console.log('Subtitle file appended:', subtitleFile.name);
         }
 
         $.ajax({
           url: 'http://up.hydrax.net/5ad53759ada34ea357b1ef70883ceb84',
           type: 'POST',
           data: formData,
-          processData: false,
-          contentType: false,
+          processData: false, // Prevents jQuery from processing the data
+          contentType: false, // Prevents jQuery from setting content-type
           xhr: function() {
             const xhr = new window.XMLHttpRequest();
             xhr.upload.addEventListener('progress', function(evt) {
@@ -84,46 +86,19 @@
             return xhr;
           },
           success: function(response) {
-            if (response.status === true) {
-              const slug = response.slug;
+            console.log('Response:', response);
+            if (response && response.slug) {
               $('#message').removeClass('text-red-500').addClass('text-green-500');
-              $('#message').text('Upload successful! Slug: ' + slug);
-
-              // If subtitle was uploaded, upload subtitle
-              if (subtitleFile) {
-                uploadSubtitle(slug, subtitleFile);
-              }
+              $('#message').text('Upload successful! Slug: ' + response.slug);
             } else {
-              $('#message').removeClass('text-green-500').addClass('text-red-500');
-              $('#message').text('Upload failed: ' + response.message);
+              $('#message').text('Upload failed, no slug returned.').addClass('text-red-500');
             }
           },
           error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Error:', textStatus, errorThrown);
             $('#message').removeClass('text-green-500').addClass('text-red-500');
             let err = jqXHR.responseJSON && jqXHR.responseJSON.message ? jqXHR.responseJSON.message : errorThrown;
             $('#message').text('Upload failed: ' + err);
-          }
-        });
-      }
-
-      function uploadSubtitle(slug, subtitleFile) {
-        const subtitleFormData = new FormData();
-        subtitleFormData.append('file', subtitleFile, subtitleFile.name);
-
-        $.ajax({
-          url: 'https://api.hydrax.net/5ad53759ada34ea357b1ef70883ceb84/subtitle/' + slug,
-          type: 'POST',
-          data: subtitleFormData,
-          processData: false,
-          contentType: false,
-          success: function(response) {
-            $('#message').removeClass('text-red-500').addClass('text-green-500');
-            $('#message').text('Subtitle uploaded successfully!');
-          },
-          error: function(jqXHR, textStatus, errorThrown) {
-            $('#message').removeClass('text-green-500').addClass('text-red-500');
-            let err = jqXHR.responseJSON && jqXHR.responseJSON.message ? jqXHR.responseJSON.message : errorThrown;
-            $('#message').text('Subtitle upload failed: ' + err);
           }
         });
       }
@@ -131,4 +106,3 @@
   </script>
 </body>
 </html>
-      
